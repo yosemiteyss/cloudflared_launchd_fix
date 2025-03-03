@@ -1,29 +1,22 @@
 #!/bin/bash
 
-# setup
+# Remove service
+sudo cloudflared service uninstall
+sudo rm /etc/cloudflared/config.yml
+
+# Copy config
 sudo mkdir /etc/cloudflared
 sudo cp ~/.cloudflared/*.json /etc/cloudflared
 sudo cp ~/.cloudflared/cert.pem /etc/cloudflared
 sudo cp ~/.cloudflared/config.yml /etc/cloudflared
 sudo sed -i.bak 's/\/Users\/'${USER}'\/\./\/etc\//g' /etc/cloudflared/config.yml
 
-# check
-sudo ls -la /etc/cloudflared
-
-# install
+# Install
 sudo cloudflared service install
 
-# check
-sudo ls -la /Library/LaunchDaemons | grep cloudflared
-sudo ls -la /Library/Logs | grep cloudflared
-sudo tail /Library/Logs/com.cloudflare.cloudflared.err.log
-
-# update
+# Launchd
+sudo launchctl stop com.cloudflare.cloudflared
 sudo launchctl unload /Library/LaunchDaemons/com.cloudflare.cloudflared.plist
-sudo patch -p 1 /Library/LaunchDaemons/com.cloudflare.cloudflared.plist < cloudflared.plist.patch
+sudo cp -f ./com.cloudflare.cloudflared.plist /Library/LaunchDaemons/
 sudo launchctl load -w /Library/LaunchDaemons/com.cloudflare.cloudflared.plist
-
-# check
-ps aux | grep cloudflared
-sudo tail /Library/Logs/com.cloudflare.cloudflared.err.log
 
